@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>详情页</title>
+</head>
+<body>
+    <div id="goods">
+
+    </div>
+</body>
+<script>
+let goods = document.querySelector('#goods');
+let id;
+let params = location.search.slice(1).split('&');
+params.forEach(item=>{
+    let arr = item.split('=');
+    if(arr[0]==='id')id=arr[1];
+});
+
+if(id){
+    let xhr = new XMLHttpRequest();
+    xhr.open('get','http://localhost:20082/goods/details/'+id);
+    xhr.send();
+    xhr.onload = function(){
+        let data = JSON.parse(xhr.responseText);
+        goods.innerHTML = xhr.responseText;
+    }
+}
+</script>
+</html>

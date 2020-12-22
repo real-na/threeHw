@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>列表页</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        html,body{
+            width: 100%;height: 100%;
+        }
+        ul,li{
+            list-style: none;
+        }
+        .box{
+            width: 1200px;
+            margin: 20px auto;
+            border: 1px solid #ccc;
+            padding: 20px;
+        }
+        .box ul{
+            display: grid;
+            grid-template-columns: repeat(4,1fr);
+            justify-content: center;
+            grid-gap: 10px 10px;
+        }
+
+        .box ul li{
+            border: 1px solid #000;
+            height: 200px;
+            font-size: 32px;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <!-- <ul>
+            <li>
+                <p></p>
+                <p></p>
+                <p></p>
+            </li>
+            
+        </ul> -->
+    </div>
+</body>
+<script>
+    let box = document.querySelector('.box');
+    let xhr = new XMLHttpRequest();
+    xhr.open('get','http://localhost:20082/goods/list');
+    xhr.send();
+    xhr.onload = ()=>{
+        const data = JSON.parse(xhr.responseText);
+        console.log("data=",data);
+        render(data);
+    }
+    function render(data){
+        const ul = document.createElement('ul');
+        ul.innerHTML = data.map(item=>{
+            return `<li data-id="${item.id}">
+                <h4>${item.name}</h4>
+                <img src="${item.imgurl}" />
+                <p>${item.price}</p>
+            </li>`
+        }).join('\n');
+        box.appendChild(ul);
+    }
+
+    box.onclick=function(e){
+        if(['h4','img'].includes(e.target.tagName.toLowerCase())){
+            let currentLi = e.target.parentElement;
+            location.href = './details.html?id='+currentLi.dataset.id;
+        }
+    }
+</script>
+</html>
