@@ -1,11 +1,11 @@
 # 数据库操作
 
-## MySQL
+## 1、MySQL
 
-### mySQL的安装配置
+### 1.1mySQL的安装配置
 >请自行查找相关资料
 
-### 在Nodejs中使用mySQL
+### 1.2在Nodejs中使用mySQL
 * 安装mysql模块
 ```bash
     npm install mysql
@@ -123,16 +123,34 @@
         - asc 升序（默认）
         - desc 降序
 
+## 2、MongoDB
 
-## MongoDB
++ MongoDB与mysql对比：
+
+| 类型   | mysql    | mongoDB     |
+| ------ | -------- | ----------- |
+| 数据库 | database | database    |
+| 表     | table    | collections |
+| 数据   | row      | document    |
+
+```js
+默认端口
+
+- mysql     : 3306
+- mongodb   : 27017
+- http      : 80
+- https     : 443
+```
+
 MongoDB是一个基于分布式文件存储的数据库，由C++语言编写，旨在为WEB应用提供可扩展的高性能数据存储解决方案，是一个介于关系数据库和非关系数据库之间的产品，是非关系数据库当中功能最丰富，最像关系数据库的。它支持的数据结构非常松散，是类似json的bson格式
+
 >bson:是一种类json的一种二进制形式的存储格式，简称Binary JSON
 
-### 下载与安装
+### 2.1、下载与安装
 * 下载地址：https://www.mongodb.com/download-center/community
 * 安装路径尽量简单，不要有中文
 
-### 配置数据库（V3.6）
+### 2.2、配置数据库（V3.6）
 * 配置环境变量
 >安装mongodb默认自动配置环境变量，方便在命令行中使用相关命令
 
@@ -158,13 +176,13 @@ MongoDB是一个基于分布式文件存储的数据库，由C++语言编写，�
     ```
 >PS: MongoDB4.0后默认安装windows服务
 
-### 命令行操作
+### 2.3、命令行操作
 
-#### 连接数据库
+#### 2.3.1、连接数据库
 * mongo 连接到数据库并进行操作
 * mongod 显示数据库信息
 
-#### 常用命令（命令行）
+#### 2.3.2、常用命令（命令行）
 >输入help可以看到基本操作命令
 
 ##### 数据库操作(Database)
@@ -194,22 +212,30 @@ MongoDB是一个基于分布式文件存储的数据库，由C++语言编写，�
 
 * 增（插入数据）： 
     * insertOne(document)
-    * inertMany([document,...])
+    * insertMany([document,...])
 
 ```js
     db.user.insertOne({username:'laoxie'});
-    db.user.insertMany([{"username": 'laoxie'}, {'username': 'jingjing'}]);
+    db.user.insertMany([{"username": 'laoxie',age:18}, {'username': 'jingjing'}]);
+//集合的字段可以不一致
 ```
 
 >当你插入一些文档时，MongoDB 会自动创建集合NAME
 
 * 删（删除数据）
-    * deleteOne(query)
-    * deleteMany(query)
+    * deleteOne(query)    ：不管匹配到多少条都只删第一条
+    * deleteMany(query)  ：匹配到多少删多少
+
+```js
+db.user.deleteMany({age:{$gt:25},issingle:true});
+```
+
+
+
 * 改（更新数据）
-    * updateOne(query,newData)
-    * updateMany(query,newData)
-    * save(document)
+    * `updateOne(query,newData)`
+    * `updateMany({query},{$set：{newData}})`
+    * `save(document)`：不需要查询条件，直接设置好再保存进去
 
 ```js
     //更新指定字段
@@ -225,17 +251,19 @@ MongoDB是一个基于分布式文件存储的数据库，由C++语言编写，�
     * 查询第一条（只获取第一条）：`db.NAME.findOne(query)`
 
     >find()方法一般后一般使用toArray()方法把结果转成数组
+    >
+    >直接toArray()拿到的是一个**pending状态的Promise对象**，所以可以在里面写回调函数拿到返回的结果
 
     ```js
         //查询user下所有数据
         db.user.find().toArray((err,result)=>{});
         
         // 查询user下年龄为38的
-        db.user.find({age:38}).toArray()
-
+        db.user.find({age:38}).toArray();
+    
         // 查询user下年龄大于38的
         db.user.find({age:{$gt:38}}).toArray()
-
+    
         //利用pretty()方法格式化结果
         db.user.find().toArray().pretty();
     ```
@@ -298,19 +326,58 @@ MongoDB是一个基于分布式文件存储的数据库，由C++语言编写，�
 
 #### 数据库操作
 * 连接mongoDB
+  * `MongoClient.connect(dbUrl,callback)`
+    * callback传了参数返回为undefind
+    * callback没传参数返回为一个pending状态的Promise对象
 
+```js
+const mongodb = require('mongodb');
+const MongoClient = mongodb.MongoClient;
 
+/* 1、不传回调返回为一个pending状态的promise对象*/
+//client3相当于是执行了resolve()的client1
+//const client1 = MongoClient.connect("mongodb://localhost:27017");
+	console.log(client1)// = Promise { <pending> }
+client1.then(res=>{
+    console.log("client=",res); //res的结果跟client3一样
+});
+
+/* 2、连接mongoDB,传了回调，回调函数里面有一个client可以用来连接数据库*/
+ const client2 =  //传了回调返回值为undefined 
+  MongoClient.connect("mongodb://localhost:27017", function(err, client3) {
+      //client3：连接成功返回的参数,里面包括连接数据库的方法等
+      if(err) throw err;
+ });
+```
+
++ + col.find().toArray()
+    + 不传回调函数当参数：得到一个pending状态的Promise，可以使用async&await或者.then拿到数据库返回的结果
+    + 传回调函数当参数，就可以在回调函数里面拿到返回结果
 
 ```javascript
-    const mongodb = require('mongodb');
-    const MongoClient = mongodb.MongoClient;
-
-    //连接mongoDB
-    MongoClient.connect("mongodb://localhost:27017", function(err, client) {
+/*连接mongoDB,传了回调，回调函数里面有一个client可以用来连接数据库*/
+  MongoClient.connect("mongodb://localhost:27017", function(err, client) {
       if(err) throw err;
-        // 连接数据库，无则自动创建
-        let db = client.db('laoxie');
-    });
+      // 连接数据库，无则自动创建
+      let db = client.db('laoxie');
+      //获取数据库里面的user集合
+      const col = db.collection('user');
+      const result = col.find();
+
+      /* 获取集合中的数据 */
+      //result.toArray()得到的是一个pendding状态的promise对象
+      //1、回调函数的写法
+      result.toArray(function(err,rows){
+          console.log(rows)
+      });
+
+        //Promise的写法
+        result.toArray().then(rows=>console.log(rows))
+
+        //async|await的写法
+        const rows = await result.toArray();
+        console.log(rows);
+ });
 ```
 
 #### 集合操作
@@ -365,7 +432,7 @@ MongoDB是一个基于分布式文件存储的数据库，由C++语言编写，�
 ```
 
 ### MongoDB备份与恢复
-*  备份
+* 备份
     * 格式：`mongodump -h dbhost -d dbname -o dbdirectory`
     * 参数说明：
         * -h： MongDB所在服务器地址，例如：127.0.0.1，当然也可以指定端口号：127.0.0.1:27017
@@ -393,7 +460,15 @@ MongoDB是一个基于分布式文件存储的数据库，由C++语言编写，�
     ---
 
     【案例】
-    
+
     * 封装数据的增删改查
     * 登录/注册页面的实现
         * 利用token保持登录状态
+
+## async&await封装连接MongoDB的方法
+
++ async：在function前面加上asycn，函数变成了一个异步程序，直接调用的时候，函数的返回值是一个pending状态的promise对象
+  + 如果函数中没有return的时候，函数的返回值是一个pending状态的promise对象，调用.then(res=>log(res))；res打印为undefined，会报错？
+  + 如果函数中有return，函数的返回值还是promise对象，调用.then以后`PromiseStatus：”resolved“;  PromiseValue:return的结果`
+  + 如果return的是一个新的promise对象，那么函数的返回值就是这个新的promise对象 
+
