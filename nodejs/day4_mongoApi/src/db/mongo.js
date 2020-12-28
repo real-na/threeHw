@@ -1,14 +1,15 @@
-const mongodb = require('mongodb');
-const MongoClient = mongodb.MongoClient;
+// const mongodb,{ObjectId} = require('mongodb');
+// const MongoClient = mongodb.MongoClient;
+const {MongoClient,ObjectId} = require('mongodb');
 
 //数据库配置
 const config = {
     dbUrl: "mongodb://localhost:27017",
-    dbName: "h52008",
+    dbName: "Interviewq",
 }
 
 async function connect(){
-    const client = await MongoClient.connect(config.dbUrl);
+    const client = await MongoClient.connect(config.dbUrl,{ useUnifiedTopology: true });
     //client:用来连接和关闭数据库
     let db = client.db(config.dbName);
     //db：连接数据库和操作数据库
@@ -28,159 +29,192 @@ async function connect(){
 
 //增
 /**
- * 传进来的参数是一个对象，要包括集合名colname和要插入的数据data
- * @param {Object} option ={colname:'user',data:[{},{},...]}
+ * 传进来的参数是一个数组0（增加的内容） 和  字符串（集合名）
+ * @param {String} colname = 'user' 集合名
+ * @param {Array} data = [{},{},...] 要插入的数据data
  */
-async function insert(option){
+async function insert(colname,data){
     let {client,db} = await connect();
     
-    const col = db.collection(option.colname);
-    if(!Array.isArray(option.data)){
-        option.data = [option.data];
+    const col = db.collection(colname);
+    if(!Array.isArray(data)){
+        data = [data];
     }
-    let data = {};
+    let code;
     try{
-        let result = await col.insertMany(option.data);
+        let result = await col.insertMany(data);
         console.log("insertRes=",result);
         //插入成功
         if(result.insertedCount){
-            data = {flag:true}
+            code = 200;
         }else{ //插入失败
-            data = {falg:false}
+            code = 400;
         }
     }catch(err){
-        data={falg:false}
+        code = 500;
     }
     //关闭连接
     client.close();
-    return data;
+    return code;
 }
 // 测试增加
 /* let dataList = [
     {
-        username:'off',
+        username:'offsb',
         password:'123',
     },
     {
-        username:'gun',
+        username:'gungun',
         password:'123456',
     },
     {
-        username:'roy',
+        username:'ooroy',
         password:'654',
     }
 ];
-insert({
-    colname:'user',
-    data:dataList,
-}).then(res=>{
+insert('user',dataList)*/
+
+/* insert('user',{username:'karry',password:'1234'}).then(res=>{
     console.log(res);
-}); */
+});  */
 
 //删
 /**
- * 传进来的参数是一个对象，要包括集合名colname和 删除的条件 query
- * @param {Object} option ={colname:'',query:{username:''}}
+ * 传进来的参数是一个对象（删除的条件） 和  字符串（集合名）
+ * @param {Object} query = {username:''} 删除的条件
+ * @param {String} colname = 'user' ; 集合名
  */
-async function remove(option){
+async function remove(colname,query){
     let {client,db} = await connect();
-    const col = db.collection(option.colname);
-    let data = {};
+    const col = db.collection(colname);
+    if(query._id){
+        // {_id:'5ec64ea8e362ce3ef0a95009'} -> {_id:ObjectId("5ec64ea8e362ce3ef0a95009")}
+        query._id = ObjectId(query._id);
+    }
+    let code ;
     try{
-        let result = await col.deleteMany(option.query);
+        let result = await col.deleteMany(query);
         if(result.deletedCount){//删除成功
-            data = {flag:true}
+            code = 200
         }else{
-            data = {flag:false}
+            code = 400
         }
     }catch(err){
-        data = {flag:false}
+        code = 500
     }
     //关闭连接
     client.close();
-    return data;
+    return code;
 }
 
 //删除测试
-/* remove({
-    colname:'user',
-    query:{username:'off'}
+/* remove('user',{_id:'5ec64ea8e362ce3ef0a95009'}).then(res=>{
+    console.log(res);
 }); */
 
 //改
 /**
- * 参数是一个对象，要包括集合名colname和 修改的条件 query:{} 以及要修改的数据data:{}
- * @param {Object} option={colname:'',query:{查询条件},data:{goods_num:3}}
+ * 参数 要包括 集合名colname 和 修改的条件 query:{} 以及要修改的数据data:{}
+ * @param {String} colname = 'user'
+ * @param {Object} query = {查询条件}  修改的条件
+ * @param {Object} data = {goods_num:3} 要修改的数据
  */
-async function update(option){
-    let {client,db} = await connect();
-    const col = db.collection(option.colname);
-    let data = {};
+async function update(colname,query,data){
+    let {client,db} = await connect()
+    const col = db.collection(colname);
+    if(query._id){
+        query._id = ObjectId(query._id);
+    }
+    let code;
     try{
         let result = await col.updateMany(
-            option.query,
-            {$set:option.data}
+            query,
+            {$set:data}
         );
         if(result.modifiedCount){//修改成功
-            data = {flag:true,msg:"update success"}
+            code = 200;
         }else{
-            data = {flag:false}
+            code = 400;
         }
         client.close();
     }catch(err){
-        data = {flag:false};
+        code = 500;
     }
-    return data
+    return code;
 }
 // 测试修改
-/* update({
-    colname:'user',
-    query:{password:"654"},
-    data:{like:'karry'}
-}).then(res=>{
+/* update('user',{_id:"5ec64ea8e362ce3ef0a95009"},{like:'wkarry'}).then(res=>{
     console.log("res=",res);
 }) */
 
 //查
-async function find(option){
-    //默认参数
-    let defOption = {
-        query:{},
-        page:1,
-        size:10,
-        sort:{}
-    };
-    Object.assign(defOption,option);
+/**
+ * query:查询条件，page页码，size:每页条数，sort:排序：
+ * sort:'addtime,1'===>按照addtime升序排序，后面没有,1默认降序
+ * @param {String} colname ='interviewQuestion' 集合名
+ * @param {*} param1 = {query:{},page:1,size:10,sort=''}
+ */
+async function find(colname,{query = {},page=1,size = 10,sort=''} = {}){
     let {client,db} = await connect();
-    let col = db.collection(defOption.colname);
+
+    //处理查询条件
+    if(typeof(query) === 'string'){
+        query = eval("(" + query + ")");
+        // console.log("query=",typeof query);  
+    }
+    if(query._id){
+        query._id = ObjectId(query._id);
+    }
+
+    //sort存在才处理排序,如果sort不存在,就直接不排序,检查用户名是否存在
+    let sortRule = {};
+    if(sort){
+        sort = sort.split(',');
+        if(sort.length === 1){
+            sort[1] = -1; //默认降序排序.sort({key:-1})
+        };
+        sortRule = {[sort[0]]:sort[1]*1};
+    }
+
+    //页码
+    let index = (page-1)*size;
+
+    let col = db.collection(colname);
+
+    // console.log("index=",index);
+    // console.log("sort=",sortRule);
+    // console.log("size=",size);
+    // console.log("query=",query);
 
     try{
-        let index = (defOption.page-1)*defOption.size
         let arr = await col
-        .find(defOption.query)
-        .limit(defOption.size*1)
+        .find(query)
+        .sort(sortRule)
         .skip(index)
-        .sort(defOption.sort)
+        .limit(size*1)
         .toArray();
         client.close();
         return arr;
     }catch(err){
-        return err;
+        return 500;
     }
 }
 
 //查询所有
-async function findtotal(option){
-    let defOption = {
-        query:{}
-    };
-    Object.assign(defOption,option);
+async function findtotal(colname,query={}){
+    console.log("query=",query);
     let {client,db} = await connect();
-    let col = db.collection(defOption.colname);
+    let col = db.collection(colname);
+
+    //处理查询条件
+    if(typeof(query) === 'string'){
+        query = eval("(" + query + ")");
+        // console.log("query=",typeof query);  
+    }
 
     try{
         let arr = await col
-        .find(defOption.query)
+        .find(query)
         .toArray();
         client.close();
         return arr;

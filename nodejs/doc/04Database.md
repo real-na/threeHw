@@ -404,18 +404,18 @@ client1.then(res=>{
 
 ### MongoDB的导入导出
 * 导出mongoexport
-把一个collection导出成JSON格式或CSV格式的文件。可以通过参数指定导出的数据项，也可以根据指定的条件导出数据
+  把一个collection导出成JSON格式或CSV格式的文件。可以通过参数指定导出的数据项，也可以根据指定的条件导出数据
 
     * 格式：`mongoexport -d dbname -c collectionname -o file --type json/csv -f field`
     * 参数说明：
         * -d ：数据库名
         * -c ：collection名
-        * -o ：输出的文件名
+        * -o ：输出到哪个位置，命名为什么
         * --type ： 输出的格式，默认为json
         * -f ：输出的字段，如果-type为csv，则需要加上-f "字段名"
 
 ```bash
-    mongoexport -d mytest -c goods -o D:/data/goods.json --type json -f  "_id,name,price,img_url,add_time"
+    mongoexport -d mytest -c goods -o D:/data/goods.csv --type csv -f  "_id,name,price,img_url,add_time"
 ```
 
 * 导入mongoimport
@@ -467,7 +467,7 @@ client1.then(res=>{
 
 ## async&await封装连接MongoDB的方法
 
-+ async：在function前面加上asycn，函数变成了一个异步程序，直接调用的时候，函数的返回值是一个pending状态的promise对象
++ async：在function前面加上asycn，函数变成了一个异步程序，直接调用的时候，函数的返回值是一个pending状态的promise对象，只有使用.then或者async&await才能拿到函数里面的值
   + 如果函数中没有return的时候，函数的返回值是一个pending状态的promise对象，调用.then(res=>log(res))；res打印为undefined，会报错？
   + 如果函数中有return，函数的返回值还是promise对象，调用.then以后`PromiseStatus：”resolved“;  PromiseValue:return的结果`
   + 如果return的是一个新的promise对象，那么函数的返回值就是这个新的promise对象 
