@@ -472,3 +472,17 @@ client1.then(res=>{
   + 如果函数中有return，函数的返回值还是promise对象，调用.then以后`PromiseStatus：”resolved“;  PromiseValue:return的结果`
   + 如果return的是一个新的promise对象，那么函数的返回值就是这个新的promise对象 
 
+### 开发环境
+
+##### git管理：在本地服务器中
+
+后端和前端写好的代码都是先传到本地的服务器（公司的服务器）
+
++ 本地环境：
+  + 本地开发环境：development
+    + 前后端分离：所以前后端端口不一样，就有跨域
+  + 本地测试环境：test（测试代码、测试业务逻辑）
++ UAT环境（线上测试环境）
+  + 测试团队进行线上测试
++ 生产环境（正式环境）：production
+  + 上线

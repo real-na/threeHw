@@ -1,3 +1,16 @@
++ 前端：javascript = ECMAScript + BOM + DOM
+
+  + 客户端语言：代码在客户端执行
+
+    网页的图片请求，css请求，js请求等静态资源都是放在服务器，需要下载到客户端执行
+
++ 后端：Node JS = ECMAScript + 服务器概念（request + response）
+
+  + nodejs是后端语言，在服务器执行的js
+  + console、JSON、npm模块
+
+
+
 # NodeJS
 
 ## 复习二阶段内容

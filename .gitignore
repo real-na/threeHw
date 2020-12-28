@@ -1,5 +1,6 @@
 # 过滤文件夹
 node_modules/
+/nodejs/day5pm_dataCrawler/public/img
 
 # 过滤文件
 *.zip

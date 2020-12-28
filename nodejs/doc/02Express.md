@@ -159,6 +159,7 @@ const myMiddleWear = function(req,res,next){
 * cookie-parser ：解析客户端cookie中的数据到`request.cookies`
 * express-session ：解析服务端生成的sessionid对应的session数据到`request.session`属性
 * http-proxy-middleware : 服务器代理中间件
+* http-sever：实现静态资源服务器的开启
 
 ### 中间件执行过程
 
@@ -299,18 +300,24 @@ next：是一个方法，调用后才会执行下一个中间件
 >把这个路由配置放在所有路由的前面，方便调用next操作
 
 ```javascript
-    app.all('*', function(req, res, next) {
+//* 表示所有的请求    
+app.all('*', function(req, res, next) {
+    //res.header：设置响应头
         res.header("Access-Control-Allow-Origin", "*");
-        res.header("Access-Control-Allow-Headers", "Content-Type,Content-Length, Authorization, Accept,X-Requested-With");
+        res.header("Access-Control-Allow-Headers", "Content-Type,Content-Length, Authorization, Accept,X-Requested-With");  //设置允许跨域的请求头
         res.header("Access-Control-Allow-Methods","PUT,POST,GET,PATCH,DELETE,OPTIONS");
 
         // 跨域请求CORS中的预请求
         if(req.method=="OPTIONS") {
             res.sendStatus(200);/*让options请求快速返回*/
         } else{
-            next();
+            next(); //一定要next才响应下面的请求
         }
-    });
+});
+===================>相当于自定义中间件
+Router.use(function(req,res,next){
+    
+})
 ```
 > 复杂跨域：
 * 非GET、HEAD、POST请求。
@@ -318,6 +325,9 @@ next：是一个方法，调用后才会执行下一个中间件
 * 添加了自定义header，例如Token。
 
 #### 代理服务器
+
+利用服务器没有跨域限制的特性，在自己的服务器（代理服务器）中向目标服务器请求数据，得到数据再响应给前端
+
 代理服务器最关键和主要的作用就是请求转发，即代理服务器将实际的浏览器请求转发至目标服务器，
 
 * 实现这个功能，关键就在下面两点：
@@ -332,6 +342,33 @@ next：是一个方法，调用后才会执行下一个中间件
 * 利用http-proxy-middleware实现代理
     > webpack代理服务器使用的中间件
 
+```js
+//发起请求的接口：http://localhost:3001/sinaapi/api/config/list 
+//真实的接口：https://m.weibo.cn/api/config/list（这个接口下才有数据）
+```
+
+```js
+//1、引入为一个函数
+const {createProxyMiddleware} = require("http-proxy-middleware");
+
+//2、添加代理配置
+const sinaProxy = createProxyMiddleware({
+    target: "https://m.weibo.cn", //你要代理的网址：目标主机地址
+    changeOrigin: true,  //是否代理：true表示代理
+    pathRewrite: {
+        //代理过程：
+        //[1]替换域名：https://m.weibo.cn/sinaapi/api/config/list
+      	//[2]重写路径：遇到接口sinaapi这一段就替换成/
+      "^/sinaapi": "/",
+    },
+  })
+
+//访问接口/sinaapi，转入createProxyMiddleware这个中间件，实现替换用的
+Router.use("/sinaapi",sinaProxy);
+```
+
+
+
 ---
 
 【案例】
@@ -343,3 +380,42 @@ next：是一个方法，调用后才会执行下一个中间件
 
 * 注册登录接口
     * 加密解密知识
+
+### 页面渲染模式
+
++ ##### 客户端渲染BSR（Browser Side Rendering） 
+
+  html结构在浏览器生成：一开始<body> 标签里面内容是空的，前端发起ajax 请求，请求到数据以后再通过js代码渲染到页面
+
+  + 前后端分离
+  + 使用这种方式一般都有接口
+    + 请求html页面,返回空的html结构
+    + 请求js文件,返回js内容
+    + 解析js代码,发起ajax请求,并返回数据
+    + 在浏览器端操作生成html结构并写入页面
+    + 浏览器渲染html
+
+  右击查看网页源代码的时候渲染的结构看不到
+
++ ##### 服务端渲染SSR（Server Side Rendering）
+
+  html结构在服务端生成
+
+  后端写一个页面，直接在server.js里面
+
+  ```js
+  app.get('/goodslist',(req,res)=>{
+  	//生成html结构(相当于在这个地方生成一个html页面)
+      let html = `<!DOCTYPE html><html lang="en">.....<body>`
+      //跟前端一样通过循环渲染出想要的结构,拼接到body后面
+      html+= `页面结构`;
+      html+=`</body></html>`;
+      res.send(html);
+  })
+  ```
+
+  + 前后端不分离
+  + 请求步骤
+    + 请求html页面,返回完整html结构
+    + 浏览器渲染html结构
+  + 优点: 速度快,一般用于首页优化

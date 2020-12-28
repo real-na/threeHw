@@ -12,8 +12,11 @@
   "author": "real_Na",
   "license": "ISC",
   "dependencies": {
+    "cheerio": "^1.0.0-rc.5",
     "express": "^4.17.1",
+    "http-proxy-middleware": "^1.0.6",
     "mongodb": "^3.6.3",
-    "mysql": "^2.18.1"
+    "mysql": "^2.18.1",
+    "request": "^2.88.2"
   }
 }

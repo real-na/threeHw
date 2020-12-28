@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>跨域请求之JSONP</title>
+</head>
+<body>
+    <h1>跨域请求之JSONP</h1>
+    <button id="btn">获取jsonp数据</button>
+    <script>
+        document.addEventListener('DOMContentLoaded',function(){
+            //定义一个全局函数getData()
+            window.getData = function(data){
+                //后端返回给前端是字符串
+                console.log(data);
+                //拿到数据以后清除script标签
+                document.body.removeChild(script);
+            } 
+            let btn = document.querySelector('#btn');
+            let script;
+            btn.onclick = function(){
+                script = document.createElement('script');
+                script.src = 'http://localhost:20085/jsonp?callback=getData';
+                document.body.appendChild(script); 
+            }
+        })
+        
+    </script>
+
+    <!-- <script src="http://localhost:20085/jsonp">
+        //相当于在这里执行了后端返回的  getData()
+    </script> -->
+</body>
+</html>
