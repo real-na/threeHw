@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>长连接webSocket</title>
+</head>
+<body>
+    <h1>webSocket</h1>
+    <input type="text" class="username">
+    <button class="btnLogin">连接</button>
+    <button class="btnLogout">断开</button>
+    <div class="userStatus"></div>
+</body>
+    <script>
+        const btnLogin = document.querySelector('.btnLogin');
+        const btnLogout = document.querySelector('.btnLogout');
+        const userStatus = document.querySelector('.userStatus');
+        const username = document.querySelector('.username');
+
+        let socket;
+        btnLogin.onclick = function(){
+            //连接 socket 服务器
+            socket = new WebSocket('ws://localhost:1001');
+
+            //监听socket的连接
+            socket.onopen = function(){
+                console.log("服务已连接 ws://localhost:1001");
+                userStatus.innerHTML = '连接成功';
+
+                btnLogin.disabled = true;
+
+                let nameVal = username.value;
+
+                socket.send(`${nameVal}进入直播间`);
+            }
+
+        }
+
+        //点击断开 按钮 断开连接
+        btnLogout.onclick = function(){
+            console.log('socket',socket);
+            if(socket){
+                //.close方法：客户端断开连接
+                socket.close();
+                socket = null;
+                userStatus.innerHTML = '断开连接';
+                btnLogin.disabled = false;
+            }
+        }
+    </script>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>03响应式属性</title>
+    <script src="js/vue.js"></script>
+</head>
+
+<body>
+    <h1>03响应式属性</h1>
+    <!-- View视图层 -->
+    <div id="app">
+        <p>用户名：{{username}}</p>
+        <input type="text" v-bind:value="age" v-on:input="changeAge" />
+        <input type="text" v-model="username" />
+
+
+    </div>
+
+    <script>
+        /**
+         * 数据挂载
+         *      * data数据为什么会出现在vm实例的属性中
+         *          * 在Vue实例化时，会遍历data中的所有属性,把这些属性变成响应式属性,并写入vue的实例
+         *      * 响应式属性(getter/setter)
+         *          > 在控制台打印的时候是(...),要点开才可以显示
+         *          > 数据的改变会更新视图
+         *      
+         */
+        let vm = new Vue({
+            el: '#app',
+
+            data:{
+                username: 'jingjing',
+                age: 32
+            },
+
+            methods: {
+                changeAge(e) {
+                    console.log('e=', e);
+                    this.age = e.target.value;
+                }
+            }
+        });
+
+        vm.username; //jingjing
+        vm.changeAge; //就可以拿到上面的方法
+
+        //此时myData就是一个普通的对象
+        let myData = {
+            username:'gun',
+            password:123456,
+            role:'admin',
+            _age:18, //假设这个是私有属性
+
+            /*********字面量的写法*********/
+            //get：监听属性的读取操作,当age属性被读取时执行这个函数
+            get age(){
+                return this._age;   //这样调用myData.age的时候就可以拿到return的结果
+                //存储器属性本身是没有值的，如果想要有，只能代理别人的值：age代理_age
+            },
+
+            //监听属性修改操作：当age属性被修改时，就执行这个函数
+            set age(newVal){
+                //只要get 的值修改了, set的newVal就可以拿到最新的值
+                this._age = newVal;
+            }
+        }
+        //遍历data数据,把数据变成getter&setter
+        /************* defineProperty写法 *************/
+        let responsive = {};
+        for(let key in myData){
+            //Object.defineProperty(targetObj,key,descriptor)
+            //targetObj：要修改的对象
+            //key：要修改的属性
+            //descriptor：属性特性
+            Object.defineProperty(responsive,key,{
+                configurable:true,
+                enumerable:true,
+                get(){
+                    return myData[key]
+                },
+                set(newVal){
+                    myData[key] = newVal
+                }
+            })
+        }
+        console.log("responsive=",responsive);
+
+    </script>
+</body>
+
+</html>

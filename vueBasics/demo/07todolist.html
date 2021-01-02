@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>todolist</title>
+    <link rel="stylesheet" href="./css/bootstrap.css">
+    <script src="./js/vue.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <h1>todolist · 待办事项</h1>
+        <div id="app">
+            <div class="input-group mb-3">
+                <input type="text" class="form-control"
+                v-model="event"
+                ref="input"
+                @keyup.13="addItem">
+                <div class="input-group-append">
+                    <button class="btn btn-success"
+                    @click="addItem">添加</button>
+                </div>
+            </div>
+
+            <table class="table">
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">待办事项(未完成)</th>
+                    <th scope="col">是否完成</th>
+                    <th scope="col">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(item,idx) in filterUncomplete(todolist)" :key="item.id">
+                    <th scope="row">{{item.id}}</th>
+                    <td>{{item.event}}</td>
+                    <td>{{item.complete?'是':'否'}}</td>
+                    <td>
+                        <button class="btn btn-primary mr-1 btn-sm"
+                        @click="changeComplete(item.id)">完成</button>
+                        <button class="btn btn-danger btn-sm"
+                        @click="removeItem(item.id)">删除</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <!-- 已完成列表 -->
+              <table class="table mt-5">
+                <thead>
+                  <tr class="table-success">
+                    <th scope="col">#</th>
+                    <th scope="col">待办事项(已完成)</th>
+                    <th scope="col">是否完成</th>
+                    <th scope="col">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(item,idx) in filterComplete(todolist)" :key="item.id">
+                    <th scope="row">{{item.id}}</th>
+                    <td>{{item.event}}</td>
+                    <td>{{item.complete?'是':'否'}}</td>
+                    <td>
+                        <button class="btn btn-primary mr-1 btn-sm"
+                        @click="changeComplete(item.id)">未完成</button>
+                        <button class="btn btn-danger btn-sm"
+                        @click="removeItem(item.id)">删除</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+        </div>
+    </div>
+    <script>
+        new Vue({
+            el: "#app",
+            data: {
+                todolist: [{
+                    id: 1,
+                    event: '好好睡觉',
+                    complete: false,
+                }, {
+                    id: 2,
+                    event: '看脆皮鸭！！！奶口卡',
+                    complete: false,
+                }, {
+                    id: 3,
+                    event: '一定一定记得来教室后台管理系统',
+                    complete: false,
+                },],
+                event:'',
+                maxId: 3,
+                currentId : null,
+            },
+            methods:{
+                addItem(){
+                    let newEvent = {
+                        id:++this.maxId,
+                        event:this.event,
+                        complete:false,
+                    };
+                    this.todolist.push(newEvent);
+                    this.event = '';
+                    this.$refs.input.focus();
+                },
+                filterComplete(data){
+                    return data.filter(item=>item.complete);
+                },
+                filterUncomplete(data){
+                    return data.filter(item=>!item.complete);
+                },
+                changeComplete(id){
+                    this.todolist.forEach(item=>{
+                        if(item.id == id){
+                            item.complete = !item.complete;
+                        }
+                    })
+                },
+                removeItem(id){
+                    this.todolist = this.todolist.filter(item=>item.id != id);
+                }
+            }
+
+        })
+    </script>
+</body>
+
+</html>

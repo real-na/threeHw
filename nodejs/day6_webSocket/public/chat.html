@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多人聊天室</title>
+    <style>
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .chat-list {
+            position: relative;
+            width: 800px;
+            margin: 0 auto;
+        }
+
+        .chat-list ul {
+            padding: 10px;
+            min-height: 300px;
+            max-height: 600px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+        }
+
+        .chat-list li {
+            float: left;
+            clear: both;
+            margin: 10px 0;
+            padding: 5px;
+            line-height: 2;
+            border-radius: 5px;
+            background-color: #efefef;
+        }
+
+        .chat-list li h4 {
+            margin: 0;
+        }
+
+        .chat-list li.active {
+            float: right;
+            background-color: #58bc58;
+            color: #fff;
+        }
+
+        .chat-list textarea {
+            display: block;
+            min-height: 50px;
+            margin: 10px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .userStatus {
+            opacity: 0;
+            position: absolute;
+            left: 0;
+            top: 30px;
+            right: 0;
+            padding: 5px 10px;
+            text-align: center;
+            color: #999;
+            background-color: rgba(98, 223, 98, 0.5);
+            transition: all 1s;
+        }
+
+        .login {
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>多人聊天室</h1>
+    <div id="chat" class="chat-list">
+        <div class="login">
+            <input type="text" name="username" id="username">
+            <button class="btn-login">进入</button>
+            <button class="btn-logout">退出</a>
+        </div>
+        <ul>
+        </ul>
+        <textarea></textarea>
+        <button class="btn-send">提交</button>
+        <div class="userStatus"></div>
+    </div>
+    <script>
+        /**
+         *  客户端WebSocket
+         * 连接socket服务器
+         * 发送消息给socket服务器
+         * 统一消息格式：{username,msg,date,type}
+         * type
+         * 0：退出聊天室
+         * 1: 进入聊天室
+         * 2：发送消息
+         */
+
+        let chat = document.querySelector('#chat');
+        let login = chat.querySelector('.login');
+        let username = login.children[0];
+        let btnLogin = login.children[1];
+        let btnLogout = login.children[2];
+
+        let msglist = chat.querySelector('ul');
+        let msg = chat.querySelector('textarea');
+        let btnSend = chat.querySelector('.btn-send');
+        let userStatus = chat.querySelector('.userStatus');
+
+        let socket;
+        let datalist = [];
+        let socketUrl = 'ws://localhost:1001';
+
+        //把传去后端的数据转成json字符串
+        function formatData(type, username, msg, time) {
+            let statusObj = {
+                type, //状态
+                username,
+                msg,
+                time
+            }
+            return JSON.stringify(statusObj);
+        }
+
+        // 登录&退出
+        login.onclick = function (e) {
+            let nameVal = username.value.trim();
+            if (e.target.className === 'btn-login') {
+                if (socket) {
+                    return;
+                }
+                if (!nameVal) {
+                    alert('请输入用户名');
+                    return;
+                }
+                socket = new WebSocket(socketUrl);
+
+                //监听socket的连接:触发了说明客户端连接服务器成功
+                socket.onopen = function () {
+                    username.disabled = true;
+                    btnLogin.disabled = true;
+
+                    // userStatus.innerHTML = '欢迎用户' + nameVal + '进入聊天室';
+                    // userStatus.style.opacity = 1;
+                    // setTimeout(() => {
+                    //     userStatus.style.opacity = 0;
+                    // }, 5000);
+
+                    //向服务器发送消息，有用户进入
+                    socket.send(formatData(1, nameVal, '进入聊天室', formatDate(new Date())));
+                }
+
+                //监听服务器发送回来的消息
+                socket.onmessage = function (e) {
+                    console.log("e.data=", e.data);
+                    const msgObj = JSON.parse(e.data);
+                    switch (msgObj.type) {
+                        case 0: //退出
+                            userStatus.style.opacity = 1;
+                            userStatus.innerHTML = `${msgObj.username} 在 ${msgObj.time} 下线`;
+                            setTimeout(() => {
+                                userStatus.style.opacity = 0;
+                            }, 5000);
+                            break;
+                        case 1: //进入
+                            userStatus.style.opacity = 1;
+                            userStatus.innerHTML = `${msgObj.username} 在 ${msgObj.time} 上线`;
+                            setTimeout(() => {
+                                userStatus.style.opacity = 0;
+                            }, 5000);
+                            break;
+                        case 2: //发消息
+                        console.log(msgObj);
+                            datalist.push(msgObj);
+                            render();
+                            break;
+                    }
+                }
+
+                //监听服务器端关闭
+                socket.onclose = function () {
+                    username.disabled = false;
+                    btnLogin.disabled = false;
+                    socket = null;
+                }
+            } else if (e.target.className === 'btn-logout') {
+                //把下线消息发给服务器
+                if (!socket) {
+                    alert('您还没有登录');
+                    return;
+                }
+                socket.send(formatData(0, nameVal, '退出聊天室', formatDate(new Date())));
+                //客户端关闭当前用户连接
+                socket.close();
+            }
+        }
+
+        //发送消息
+        btnSend.onclick = () => {
+            socket.send(
+                formatData(2, username.value, msg.value, formatDate(new Date())));
+
+            msg.value = '';
+            msg.focus();
+        }
+
+        function render() {
+            msglist.innerHTML = datalist.map(item => `<li class="${item.username === username.value ? 'active':''}">
+                <h4>${item.username}：</h4>
+                <div class="content">${item.msg}</div>
+                <time>${item.time}</time>
+            </li>`).join('')
+        }
+
+        function formatDate(date) {
+            let year = date.getFullYear();
+            let month = date.getMonth() + 1;
+            let day = date.getDate();
+            let hours = date.getHours();
+            let min = date.getMinutes();
+            let sec = date.getSeconds();
+
+            hours = hours < 10 ? '0' + hours : hours
+            min = min < 10 ? '0' + min : min
+            sec = sec < 10 ? '0' + sec : sec
+
+            return `${year}-${month}-${day} ${hours}:${min}:${sec}`
+        }
+        console.log("socket=", socket);
+    </script>
+</body>
+
+</html>

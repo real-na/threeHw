@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tab标签切换</title>
+    <style>
+        .tab .title{border-bottom:2px solid #ccc;overflow: hidden;}
+        .tab .title span{float: left;padding:0 15px;height:50px;line-height: 50px;border:1px solid #efefef;border-bottom:none;}
+        .tab .title span.active{border:1px solid #ccc;background-color:#ffc}
+        .tab .content{border:1px solid #ddd;padding:15px}
+    </style>
+    <script src="./js/vue.js"></script>
+</head>
+<body>
+    <div id="app">
+        <div class="tab">
+            <div class="title">
+                <span v-for="(item,index) in tabs"
+                v-bind:class="{active:index===currentIdx}"
+                v-on:click="changeTab(index)">
+                    {{item.name}}
+                </span>
+            </div>
+            <div class="content">
+                <div
+                v-for="(item,index) in tabs"
+                v-show="index===currentIdx">{{item.name + item.like}}</div>
+            </div>
+        </div>
+    </div>
+    <script>
+        /* 
+        v-bind：绑定class名：v-bind:class="{active:true,'tab-item':false'}"
+            * 如果class名之间有-连接就要用''包起来
+        */
+        new Vue({
+            el:'#app',
+            data:{
+                tabs:[{
+                    name:'off',
+                    like:'gun'
+                },{
+                    name:'gun',
+                    like:'off',
+                },{
+                    name:'karry',
+                    like:'roy'
+                }],
+                currentIdx:0
+            },
+            methods:{
+                changeTab(idx){
+                    this.currentIdx = idx;
+                }
+            }
+        })
+    </script>
+    
+</body>
+</html>

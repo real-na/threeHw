@@ -399,7 +399,7 @@ Router.use("/sinaapi",sinaProxy);
 
 + ##### 服务端渲染SSR（Server Side Rendering）
 
-  html结构在服务端生成
+  html结构在服务端生成（爬虫：只能爬服务端渲染的数据）
 
   后端写一个页面，直接在server.js里面
 

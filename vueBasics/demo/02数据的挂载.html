@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>02数据的挂载</title>
+    <script src="js/vue.js"></script>
+</head>
+
+<body>
+    <h1>02数据的挂载</h1>
+    <!-- View视图层 -->
+    <div id="app">
+        <p>用户名：{{username}}</p>
+        <input type="text" v-bind:value="age" v-on:input="changeAge" />
+        <input type="text" v-model="username" />
+
+
+    </div>
+
+    <script>
+        /**
+         * 数据挂载
+         *      * data数据为什么会出现在vm实例的属性中
+         *          * 在Vue实例化时，会遍历data中的所有属性,把这些属性变成响应式属性,并写入vue的实例
+         *      * 响应式属性(getter/setter)
+         *          > 数据的改变会更新视图
+         *      
+         */
+        let vm = new Vue({
+            el: '#app',
+
+            data = {
+                username: 'jingjing',
+                age: 32
+            },
+
+            methods: {
+                changeAge(e) {
+                    console.log('e=', e);
+                    this.age = e.target.value;
+                }
+            }
+        });
+
+        vm.username; //jingjing
+        vm.changeAge; //就可以拿到上面的方法
+    </script>
+</body>
+
+</html>

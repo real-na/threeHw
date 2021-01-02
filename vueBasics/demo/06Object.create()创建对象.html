@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>06Object.create()创建对象</title>
+</head>
+
+<body>
+    <h1>06Object.create()创建对象</h1>
+</body>
+<script>
+    /* 
+    是ES5新增的，用来规范原型式继承的
+    Object.create('用作新对象原型的对象',[为新对象定义额外属性的对象])
+    */
+    var person = {
+        name: 'off1',
+        friends: ['gun1', 'roy1'] //引用类型 值属性共享
+    };
+
+    var onePerson = Object.create(person); //OnePerson继承person对象
+    onePerson.name = 'off2',
+        onePerson.friends.push('gun2');
+    console.log(onePerson.name);
+    console.log(onePerson.friends);
+
+    //第二个参数为{属性：属性特性}
+    var o = Object.create(Object.prototype, {
+        // foo会成为所创建对象的数据属性
+        foo: {
+            writable: true,
+            configurable: true,
+            value: "hello"
+        },
+        // bar会成为所创建对象的访问器属性
+        bar: {
+            configurable: false,
+            get: function () {
+                return 10
+            },
+            set: function (value) {
+                console.log("Setting `o.bar` to", value);
+            }
+        }
+    });
+
+    console.log(o); //{foo:'hello'}
+
+    var test1 = Object.create(null);
+    console.log(test1); // {} No Properties 
+</script>
+
+</html>

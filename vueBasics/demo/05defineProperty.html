@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="./js/vue.js"></script>
+</head>
+<body>
+    <div id="app">
+       <!--  a:{{a}}<br>
+        num:{{num}}<br> -->
+       <div>对象user:{{user.name}} + {{user.love}}</div>
+        数组：{{users}}<br>
+        <!-- {{info.name}} {{info.age}} -->
+    </div>
+    <script>
+    let vm = new Vue({
+        el:'#app',
+        data:{
+            // a:10,
+            // num:'',//[1.1]、num如果一开始在data里面不存在
+            user:{
+                name:'firstname',
+            }, //1、对象：后续添加的监听不到，比如后面user.love="gun",视图层不会更新
+            users:['arroff','arrgun'] //[2.1]、数组会被直接整个变成字符串渲染到页面
+        },
+    })
+    // vm.a = 20; //a就会以20被渲染到视图
+    vm.num = 'shuju'; //[1.2]、在这里直接添加,是后期添加的监听不到，直接报错
+    vm.users.push('arr1'); //[2.2]可以监听到
+    vm.users[3] = 'arr2'; //[2.3]可以添加上去
+
+    /* 对象 */
+    vm.user.love = 'addlove';
+   
+    //     let vm = new Vue({
+    //         el: '#app',
+    //         data: {
+    //             msg: 'emmmmmmm',
+    //             info:{
+    //                 name:'cy'
+    //             }
+    //         }
+    //     })
+    //    vm.info.age=18
+    
+    </script>
+</html>
