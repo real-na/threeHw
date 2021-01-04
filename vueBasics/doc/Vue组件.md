@@ -2,9 +2,9 @@
 
 # 组件Component
 
-组件是 Vue最强大的功能之一，组件可以扩展 HTML 元素，封装可重用的代码。组件系统让我们可以用独立可复用的小组件来构建大型应用，几乎任意类型的应用的界面都可以抽象为一个组件树
+> 如果说指令为html属性，组件就是创建一个html标签
 
-![Alt text](./img/components.png "Optional title")
+组件是 Vue最强大的功能之一，组件可以扩展 HTML 元素，封装可重用的代码。组件系统让我们可以用独立可复用的小组件来构建大型应用，几乎任意类型的应用的界面都可以抽象为一个组件树
 
 * 优点
   * 代码复用
@@ -18,6 +18,9 @@
 ### 组件要求
 
 * data必须为Function类型
+
+原因：为了保证组件的独立性 和 可 复用性，data 是一个函数，组件实例化的时候这个函数将会被调用，返回一个对象，计算机会给这个对象分配一个内存地址，你实例化几次（创建多少个组件），就分配几个内存地址，他们的地址都不一样，所以每个组件中的数据不会相互干扰，改变其中一个组件的状态，其它组件不变。
+
 * 每个组件必须只有一个根元素,否则报错
 * 注册时组件名可以是kebab-case或PascalCase，但在html页面上使用时，必须写成遵循W3C 规范中的自定义组件名 (字母全小写且必须包含一个连字符)
 
@@ -29,7 +32,15 @@
       // ... options ...
       template:'<p>我是全局组件</p>'
     })
+//template:'<div>模板</div>', 
+//配置了template以后,就会把template作为视图(替换掉el里面的内容,包括#app本身)
+//如果没有配置template，就会以el里面的节点作为模板
+//相当于templete是el节点的outerHTML
 ```
++  option:组件配置选项(和vue实例里面的配置几乎一致)
+  +  定义：Vue.component('todolist',option)
+  +  使用：<todolist></todolist>
+
 ### 局部组件
 
 在某个Vue实例中通过components属性注册的组件为局部组件，只有当前实例能使用
@@ -84,96 +95,134 @@
   </table>
 ```
 
-## 组件通讯
+## 2、组件通讯
 
-### 父组件->子组件： props
+### 2.1、组件间通信规则
+
+1. 不要在子组件中直接修改父组件传递的数据
+2. 数据初始化时，应当看初始化的数据是否用于多个组件中，如果需要被用于多个组件中，则初始化在父组件中；如果只在一个组件中使用，那就初始化在这个要使用的组件中。
+3. 数据初始化在哪个组件, 更新数据的方法(函数)就应该定义在哪个组件(自己的数据自己管理) **单向数据流规则**
+
+单项数据流
+
+> 所有的数据传到子组件后，不能在子组件修改数据；
+>
+> 所以在设计数据时，要遵循**谁的数据谁修改**的原则（修改数据的方法要放在数据所在的组件）
+
+### 2.2、通讯方式
+
+1. props 父组件向子组件传递数据：父传子、子传父
+2. $emit 自定义事件：子传父
+3. slot 插槽分发内容：父传子
+
+#### 2.2.1、父组件->子组件
+
+#####  props(可以传数据，也可以传递方法)
 
 组件实例的作用域是孤立的。这意味着不能（也不应该）在子组件的模板内直接引用父组件的数据。要让子组件使用父组件的数据，需要通过子组件的props选项
 
-* props声明属性：声明的属性会自动成为组件实例的属性（可通过this.xx访问）
+* props声明属性：声明的属性会自动成为组件实例的属性（可通过this.xx访问，可以是data里面的数据，可以是methods里面的方法）
   > prop传递是单向的，当父组件的属性变化时，将传导给子组件，但是不会反过来
+
+1、在父组件的模板中给子组件定义属性，并传递数据
 
 
 ```html
-    <blog-post mytitle="静态数据"></blog-post>
+    <blog-post :mytitle="静态数据"></blog-post>
+<!-- 传入一个对象 -->
+   <blog-post v-bind:author="{ name: 'laoxie', age:18 }"></blog-post>
 ```
-```javascript
+2、子组件通过props接收
+
+> 通过props接收以后，所有的props属性会自动成为子组件实例上的属性
+>
+> 所以使用的时候直接就是：this.mytitle
+
+```js
     Vue.component('blog-post', {
-      props: ['mytitle'],
+      props: ['mytitle','author'],
       template: '<h3>{{ mytitle }}</h3>'
     })
 ```
 
-```html
-   <blog-post :msg="message"></blog-post>
+##### props传递方法
 
-    <!-- 传入一个对象 -->
-   <blog-post v-bind:author="{ name: 'laoxie', age:18 }"></blog-post>
-```
-```javascript
-    Vue.component('blog-post', {
-      props: ['msg','author'],
-      template: '<h3>{{ msg }}</h3>'
-    });
+以下为深层次组件通信中的逐层传递
 
-    let vm = new Vue({
-      data:{
-        message:'hello laoxie'
-      }
-    })
+> 以todolist里面 完成和删除为例
+
++ 1、父组件传递方法
+
+```js
+<todo-content :tododata="tododata" :complete="completeItem"
+            :remove="removeItem"></todo-content>
+methods:{
+	completeItem(id){}
+    removeItem(id){}
+}
 ```
 
-* 非prop属性：不通过props声明的属性
-  > 此类属性会自动成为组件根节点的属性（可通过`{inheritAttrs: false}` 关闭）
++ 2、子组件todoContent接收（还要继续传到子组件todoItem）
 
-* prop数据验证
-  > 对传入的prop属性进行校验，如：数据类型、必填、默认值等
+tbody里面只能是tr，所以直接写成todo-item是不可以的
 
-```javascript
-  Vue.component('my-component', {
-    props: {
-      // 基础的类型检查 (`null` 匹配任何类型)
-      propA: Number,
-      // 多个可能的类型
-      propB: [String, Number],
-      // 必填的字符串
-      propC: {
-        type: String,
-        required: true
-      },
-      // 带有默认值的数字，无prop属性传入时，默认得到100
-      propD: {
-        type: Number,
-        default: 100
-      },
-      // 带有默认值的对象
-      propE: {
-        type: Object,
-        // 对象或数组默认值必须从一个工厂函数获取
-        default: function () {
-          return { message: 'hello' }
-        }
-      },
-      // 自定义验证函数
-      myscore: {
-        validator: function (value) {
-          // 这个值必须大于等于60，否则报错
-          return val>=60
-        }
-      }
-    }
-  })
+> 使用 is 
+
+`<tr is="todo-item"></tr>`：表示tr是属于todo-item组件的
+
+```js
+props:['complete','remove'];
+<tbody>
+<tr is="todo-item" v-for="(item,idx) in tododata" 
+		   :complete="completeItem"
+            :remove="removeItem"
+		   :item="item" :idx="idx"></tr>
+</tbody>
 ```
 
-### 子组件->父组件： 自定义事件 + $emit()
++ 3、子组件todoItem接收
+
+> 点击的时候触发接收到的complete事件，把item.id往上传
+
+```js
+props:['complete','remove'];
+<button @click="complete(item.id)">完成</button>
+<button @click="remove(item.id)">删除</button>
+```
+
+#### 2.2.2、子组件->父组件
+
+##### 自定义事件 + $emit()
+
++ $emit()：是Vue实例上的方法
 
 > PS：Vue遵循**单向数据流**原则，不允许在子组件中直接修改props传入的父组件数据（谁的数据谁修改），可以通过自定义事件系统，利用$emit()方法触发父组件函数来达到修改的效果
 
-* 方式一（推荐）：
-  1. 子组件上自定义事件（如:show），并使用父组件的事件处理函数（handler）
-  >`<mycom v-on:show="handler" />`
-  2. 子组件内部触发自定义事件并传递参数
-  >this.$emit('show',100) 会触发父组件的事件处理函数handler，从而实现数据修改
+* 方式一（推荐）：以todolist和todoAdd为例
+  1. 在父组件模板中给 子组件 定义  自定义事件（如:add），并使用父组件的事件处理函数（handler）
+  ```js
+  <todo-add v-on:add="handler"> </to-add>
+  ```
+
+  2. 在子组件内部（todoAdd内部）触发自定义事件并传递参数
+  >this.$emit('add',this.event) 会 通过自定义事件add  触发父组件的事件处理函数handler，从而实现数据修改
+
+  ```js
+  <button @click="addItem"></button>
+  data:function(){
+      return {
+          event:'',
+      }
+  }
+  methods:{
+      addItem(){
+          //触发父组件中的自定义事件
+          this.$emit('add',this.event)
+      }
+  }
+  ```
+
+  
 
 * 方式二（简单数据可采用方案）：
   1. 可以利用v-bind:xx.sync修饰符（如下color属性）
@@ -225,20 +274,65 @@
   </script>
 ```
 
-### 兄弟组件通信
+#### 2.2.3、兄弟组件通信
 
 * 组件A -> 父组件 -> 组件B
   > 组件A与组件B具有共同父级
 
-### 无关联/多层级组件间传参
+#### 2.2.4、无关联/深层次组件间传参
+
++ 逐层传递（不推荐）：麻烦，结构的改变会导致通信失败
++ 事件Bus(总线)：也是通过自定义事件
 
 > 利用一个Vue实例作为中间桥梁实现传参（如：组件A与组件B无任何联系或层级很深）
 
-- 接收方（组件B）：自定义事件
-- 传输方（组件A）：$emit()
+##### 事件总线实现步骤
+
+以todolist中完成和删除为例：目的是把id从子组件往父组件里面传递
+
++ 数据接收方（父组件todolist）：创建一个Vue实例Bus，用于事件绑定与触发
+
+  自定义事件complete（要接收传过来的id）
+
+  + > $on(‘自定义事件’，组件中的事件处理函数)
+
+    事件处理函数需要在该组件中才可以获取，所以写在该组件created生命周期函数里面
+
+  ```js
+  // 实例化一个Vue，用于传输数据
+  let bus = new Vue();
+  //给事件总线添加自定义事件，自定义事件就会被绑定给bus实例
+  //写在todolist的生命周期函数里面
+  created(){
+      bus.$on('complete',this.completeItem);
+      bus.$on('remove',this.removeItem)
+  }
+  ```
+
++ 数据传输方（组件todoItem）：通过$emit触发Bus的自定义事件，并传递参数
+
+  + > $emit(‘自定义事件名’，要传递的参数)
+
+```js
+<button @click="complete1(item.id)"></button>
+methods:{
+    complete1(id){
+        //触发事件并传递参数
+        bus.$emit('complete',item.id); //把id传过去
+    }
+}
+```
+
+> 任意组件都可以绑定/触发自定义事件
+>
+> 在不创建Bus的前提下，可以使用$root取代Bus的作用
+
++ 接收方（组件B）：自定义事件（父组件要接收id）
+
++ 传输方（组件A）：$emit()
 
 ```javascript
-    // 定义中间桥梁bus
+    // 定义中间桥梁bus（实例化的vue）
     let bus = new Vue();
 
     //组件A
@@ -280,9 +374,86 @@
     });
 ```
 
-## 插槽内容
+### 2.3、通讯过程的数据类型校验
+
++ prop数据验证
+
+> 对传入的prop属性进行校验，如：数据类型、必填、默认值等
+
+```javascript
+  Vue.component('my-component', {
+    props: {
+      // 基础的类型检查 (`null` 匹配任何类型)
+      propA: Number,
+      // 多个可能的类型
+      propB: [String, Number],
+      // 必填的字符串
+      propC: {
+        type: String,
+        required: true
+      },
+      // 带有默认值的数字，无prop属性传入时，默认得到100
+      propD: {
+        type: Number,
+        default: 100
+      },
+      // 带有默认值的对象
+      propE: {
+        type: Object,
+        // 对象或数组默认值必须从一个工厂函数获取
+        default: function () {
+          return { message: 'hello' }
+        }
+      },
+      // 自定义验证函数
+      myscore: {
+        validator: function (value) {
+          // 这个值必须大于等于60，否则报错
+          return val>=60
+        }
+      }
+    }
+  })
+```
+
++ 非prop属性：不通过props声明的属性（在父组件定义了，子组件没有接收）
+
+  > 此类属性会自动成为父组件根节点的属性（可通过`{inheritAttrs: false}` 关闭）
+
+## 3、插槽内容
+
+- 作用: 主要用于父组件向子组件传递 标签+数据 , （prop和自定义事件只是传递数据）
+- 场景：一般是某个位置需要经常动态切换显示效果（如饿了么）个性化定制的地方，比如有的按钮
 
 ### 利用组件内容进行通讯（父->子）
+
+##### 1、子组件定义插槽
+
+在子组件中定义插槽, 当父组件向指定插槽传递标签数据后, 插槽处就被渲染，否则插槽处不会被渲染
+
+相当于在slot处（子组件标签的任意位置插入slot）留了一个空位，父组件的子组件标签里面传过来什么内容，就给空位填充什么内容
+
+```javascript
+//没有名字的就叫匿名插槽
+想在哪填充就在结构的哪个位置写上slot标签
+<slot />   ------>单标签
+<slot></slot>
+
+```
+
+##### 2、父组件传递标签数据
+
+```javascript
+//写在父组件引用的自定义子组件里面
+<content-bottom>里面的数据包括content-bottom标签都是会被子组件的template里面的结构替换 ，使用插槽就可以把数据和结构传过去
+</content-bottom>
+<template>
+    <h1>工资表</h1>
+</template>
+```
+
+
+
 > 在组件模板中利用内置组件`<slot></slot>`来承载组件内容,否则它的内容都会被忽略（被模板内容覆盖）
 
 * 默认插槽default
@@ -360,7 +531,7 @@
   </mynav>
 ```
 
-## 内置组件
+## 4、内置组件
 
 * `<component>` 动态组件
     * is：指定渲染的组件
@@ -496,7 +667,6 @@
 【案例】
 
 * 实现一个可复用的搜索组件
-  ![](./img/com_search.png "Optional title")
 * todolist待办事项列表
 * 开发goTop 返回顶部组件
 
@@ -504,7 +674,3 @@
 
 * 利用动态组件实现Tab标签切换
 * 封装一个step步骤条组件
-
-![stpes](./img/steps.png "Optional title")
-
-

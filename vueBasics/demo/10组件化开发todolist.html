@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>10组件化开发todolist</title>
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <script src="js/vue.js"></script>
+</head>
+
+<body>
+    <div class="container p-3">
+        <h1 class="text-center">todolist待办事项列表</h1>
+        <div id="app">
+            <todolist></todolist>
+        </div>
+    </div>
+
+    <template id="todolist">
+        <div>
+            <todo-add @add="addItem"></todo-add>
+            <todo-content :tododata="tododata"></todo-content>
+            <todo-Status :tododata="tododata"></todo-Status>
+        </div>
+    </template>
+
+    <template id="todoAdd">
+        <div class="input-group mt-3">
+            <input type="text" class="form-control" ref="input" v-model="event" @keyup.enter="addItem" />
+            <div class="input-group-append">
+                <button class="btn btn-success" v-on:click="addItem">添加</button>
+            </div>
+        </div>
+    </template>
+
+    <template id="todoContent">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">代办事项</th>
+                    <th scope="col">是否完成</th>
+                    <th scope="col">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr is="todo-item" v-for="(item,idx) in tododata" 
+                :key="item.id" :item="item" :idx="idx"
+                ></tr>
+            </tbody>
+        </table>
+    </template>
+
+    <template id="todoStatus">
+        <div class="border border-secondary p-3">
+            代办事项：{{tododata.length}}，完成：{{completelist.length}}，未完成：{{uncompletelist.length}}
+        </div>
+    </template>
+
+    <template id="todoItem">
+        <tr :id="item.id" :class="{'table-success':item.complete}">
+            <th scope="row">{{idx+1}}</th>
+            <td>{{item.event}}</td>
+            <td>{{item.complete ? '是':'否'}}</td>
+            <td>
+                <button class="btn btn-outline-primary btn-sm" @click="complete1(item.id)">完成</button>
+                <button class="btn btn-outline-danger btn-sm" @click="remove1(item.id)">删除</button>
+            </td>
+        </tr>
+    </template>
+    <script>
+        /**
+         * todolist待办事项列表
+         * 父传子：props:父组件todolist把tododata通过props传到子组件
+         * 子传父：自定义方法+$emit
+         *  * 父组件：<子组件 v-on:自定义方法="事件处理函数父"></子组件>
+         *  * 子组件：<button @click="事件处理函数子"></button>
+         *              事件处理函数子(){
+         *                  this.$emit('自定义方法',参数)
+         *              }
+         */
+        const todoStatus = {
+            props:['tododata'],
+            template: '#todoStatus',
+            // 计算属性：一般用于对data数据进行过滤，映射，计算等操作
+            // 计算属性为存储器属性，默认为getter
+            // 计算属性具有缓存功能
+            computed: {
+                completelist: function () {
+                    return this.tododata.filter(item => item.complete)
+                },
+                uncompletelist: function () {
+                    return this.tododata.filter(item => !item.complete)
+                }
+            },
+        }
+
+        const todoItem = {
+            // props: ['item', 'idx','complete','remove' ],
+            props: ['item', 'idx'],
+
+            template: '#todoItem',
+            methods:{
+                complete1(id){
+                    this.$root.$emit('complete',id);
+                },
+                remove1(id){
+                    this.$root.$emit('remove',id)
+                }
+            }
+        }
+        
+        const todoContent = {
+            // props: ['tododata','complete','remove'],
+            props: ['tododata'],
+
+            template: '#todoContent',
+            components: {
+                todoItem
+            }
+        }
+
+        const todoAdd = {
+            data: function () {
+                return {
+                    event: '',
+                }
+            },
+            template: '#todoAdd',
+            methods: {
+                addItem() {
+                    this.$emit('add', this.event);
+                    // 清空并自动获得焦点
+                    this.event = '';
+
+                    this.$refs.input.focus();
+                }
+            }
+        }
+
+        //实例化一个全局的事件总线
+        // const Bus = new Vue();
+
+        Vue.component('todolist', {
+            data: function () {
+                return {
+                    tododata: [{
+                        id: 1,
+                        event: '定个小目标睡一整天',
+                        complete: true
+                    }, {
+                        id: 2,
+                        event: '赚他一个亿',
+                        complete: false
+                    }, {
+                        id: 3,
+                        event: '迎娶白富美，达到人生巅峰',
+                        complete: false
+                    }, {
+                        id: 4,
+                        event: '出人CEO，达到疯癫状态',
+                        complete: false
+                    }],
+                    maxId: 4,
+                }
+            },
+            methods: {
+                //  添加
+                addItem(data) {
+                    let newEvent = {
+                        id: ++this.maxId,
+                        event: data,
+                        complete: false,
+                    }
+                    this.tododata.push(newEvent);
+                },
+                // 删除
+                removeItem(id) {
+                    this.tododata = this.tododata.filter(item => item.id != id);
+                },
+
+                // 修改
+                completeItem(id) {
+                    this.tododata.forEach(item => {
+                        if (item.id == id) {
+                            item.complete = true;
+                        }
+                    })
+                }
+            },
+            created(){
+                this.$root.$on('complete',this.completeItem);
+                this.$root.$on('remove',this.removeItem);
+            },
+            template: '#todolist',
+            components: {
+                todoAdd,
+                todoContent,
+                todoStatus
+            }
+        })
+
+        const vm = new Vue({
+            el: '#app',
+            data: {
+            },
+        })
+    </script>
+</body>
+
+</html>

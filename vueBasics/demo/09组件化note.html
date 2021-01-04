@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>组件化note</title>
+</head>
+
+<body>
+    <div class="container">
+        <h1>todolist · 待办事项</h1>
+        <div id="app">
+            <todolist></todolist>
+        </div>
+    </div>
+    <template id="todolist">
+        <div class="todolist">
+            <todo-add></todo-add>
+        </div>
+    </template>
+        <script>
+            /* 定义组件：相当于定义一个html标签
+         *  * 全局组件：Vue.component(name,option)
+              * option:组件配置选项(和vue实例里面的配置几乎一致)
+                * 定义：Vue.component('todolist',option)
+                * 使用：<todolist></todolist>
+            * 局部组件：components
+
+        Vue.component():全局方法
+         */
+
+            /* todolist */
+            Vue.component('todolist', {
+                //这里面的配置和vue实例里面的配置几乎一致
+                data:function(){
+                    return {
+
+                    }
+                },
+                template:`#todolist`,
+                
+                components:{
+                    /* todoAdd */
+                    todoAdd:{
+                        template:"#todoAdd"
+                    },
+                    /* todoContent */
+                    todoContent:{
+                        template:"#todoContent"
+                    }
+                }
+            } )
+            const vm = new Vue({
+                el: '#app',
+                data: {
+
+                },
+                //template:'<div>模板</div>', 
+                //配置了template以后,就会把template作为视图(替换掉el里面的内容,包括#app本身)
+                //如果没有配置template，就会以el里面的节点作为模板
+
+            })
+        </script>
+</body>
+
+</html>

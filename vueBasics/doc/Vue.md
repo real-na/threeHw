@@ -130,11 +130,11 @@ Vue.js 是一个基于MVVM模式的一套渐进式框架。它是以数据驱动
             }
         ```
 
-## 实例属性&方法
+## 5、实例属性&方法
 
 > Vue实例化时，会遍历data/computed/methods中所有属性/方法，并写入Vue的实例
 
-### 响应式属性
+### 5.1响应式属性
 
 > 遍历data中所有属性，通过Object.defineProperty()方法把它们设置为存储器属性（getter & setter），并写入Vue实例
 
@@ -158,39 +158,118 @@ let laoxie = {
 ```
 
 * 设置响应式属性
-	* 设置初始化数据data
-	* Vue.set(target,key,val) 向**响应式系统**中的对象添加属性并自动渲染视图
-		> 注意：target对象不能是 Vue 实例，或者 Vue 实例的根数据对象
-	* 数组变异方法
+  * 设置初始化数据data（后添加的属性不会变成响应式属性） 
 
-### 内置属性
+  * Vue.set(target,key,val) 向**响应式系统**中的对象添加属性并自动渲染视图
+    > 注意：target对象不能是 Vue 实例，或者 Vue 实例的根数据对象Vue.$data 
+
+  * 数组变异方法
+
+  * 使用计算属性computed设置 
+
+  * props
+
+### 5.2内置属性
 
 > 除了数据属性，Vue 实例还提供了一些有用的实例属性与方法。它们都有前缀 $，以便与用户定义的属性区分开来
 
 - $data: 同 data
-- $el: 同 el节点
+
+- $el: 同 el节点 ，vm.$el 可以拿到结构模板
+
 - $refs
-- $parent
-- $children
-- $root
 
-### 内置方法
+- $parent：父组件
 
-* 数据data
-    - $watch()：监听数据变化，同watch配置选项
-    - $set()：Vue.set()的别名
-* 事件event
-    - $on()     ：监听当前实例上的自定义事件
-    - $off()    ：移除自定义事件监听器
-    - $emit()   ：触发当前实例上的事件
-* 生命周期函数
-    * $mount()  ：
-        > 如果实例化时未配置 el 选项，则它处于“未挂载”状态，没有关联的 DOM 元素。可以使用 vm.$mount() 手动地挂载
-    * $destroy()
-        > 完全销毁一个实例。清理它与其它实例的连接，解绑它的全部指令及事件监听器。触发 beforeDestroy 和 destroyed 的钩子
-    * $nextTick(callback)
-        > 同Vue.nextTick()，将回调延迟到下次 DOM 更新循环之后执行，返回promise对象
-    * $forceUpdate() 强制刷新组件
+- $children：子组件
+
+- $root：根实例，在任何组件里面打印`this.$root`都是指向最外层的vm实例
+  - 所以可以使用this.$root来实现bus总线深层次传参的功能
+
+    + todolist里面绑定事件到this.$root里面
+
+    ```js
+    created(){
+        this.$root.$on('complete',this.completeItem)
+    }
+    ```
+
+    + 子组件todoItem用  `this.$root.$emit()`调用
+
+  
+
+  每个组件实例都有一个_uid，根组件的 _uid为1
+
+#### 私有属性
+
+控制台打印vue，以下划线开头的，不对外的属性
+
+### 5.3内置方法
+
+#### 1数据data
+
+- $watch()：监听数据变化，同watch配置选项
+- $set()：Vue.set()的别名
+
+#### 2事件event
+
+##### $on()    
+
+ ：监听当前实例上的自定义事件，用来绑定事件，等效于v-on
+
+```js
+const Bus = new Vue();
+Bus.$on('自定义事件名',事件处理函数)
+```
+
+> 可以实现v-on的效果
+
+`v-on:自定义事件名="事件处理函数" `     === 
+
+  `this.$on('自定义事件名',this.事件处理函数)`
+
+```js
+<todolist v-on:gun="handler"></todolist>
+//等效于
+在todolist的created生命周期函数里面
+created(){
+    this.$on('gun',this.handler)
+}
+```
+
+##### $off()    ：
+
+移除自定义事件监听器
+
+```js
+<todolist v-on:gun="handler"></todolist>
+//在todolist的created生命周期函数里面移除
+created(){
+    this.$off('gun');
+}
+```
+
+##### $emit()   
+
+触发当前实例上的事件
+
+```js
+<todolist v-on:gun="handler"></todolist>
+//在todolist的created生命周期函数里面触发
+created(){
+    this.$emit('gun',this.handler)
+}
+```
+
+#### 3生命周期函数
+
+* $mount()  ：
+    > 如果实例化时未配置 el 选项，则它处于“未挂载”状态，没有关联的 DOM 元素。可以使用 vm.$mount() 手动地挂载
+* $destroy()
+    > 完全销毁一个实例。清理它与其它实例的连接，解绑它的全部指令及事件监听器。触发 beforeDestroy 和 destroyed 的钩子
+* $nextTick(callback)
+    > 同Vue.nextTick()，将回调延迟到下次 DOM 更新循环之后执行，返回promise对象
+* $forceUpdate() 强制刷新组件
 
 ```javascript
     vm.$watch('name', function (newValue, oldValue) {
@@ -198,7 +277,7 @@ let laoxie = {
     });
 ```
 
-## 生命周期
+## 6、生命周期
 
 <!-- ![Alt text](./img/lifecycle.png "Optional title") -->
 
