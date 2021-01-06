@@ -112,7 +112,17 @@
 ### 2.2、通讯方式
 
 1. props 父组件向子组件传递数据：父传子、子传父
+
+   + props传递过去的数据如果不接收，就会自己放在根节点的属性上
+
+   ```js
+   
+   ```
+
+   
+
 2. $emit 自定义事件：子传父
+
 3. slot 插槽分发内容：父传子
 
 #### 2.2.1、父组件->子组件
@@ -189,6 +199,12 @@ props:['complete','remove'];
 <button @click="complete(item.id)">完成</button>
 <button @click="remove(item.id)">删除</button>
 ```
+
+##### $parent.show()
+
+可以直接用$parent.方法名()、$parent.数据
+
+这里的$parent就相当于父组件中的this
 
 #### 2.2.2、子组件->父组件
 
@@ -273,6 +289,30 @@ props:['complete','remove'];
     })
   </script>
 ```
+
+##### $children
+
+父组件获取子组件的数据和方法
+
++ $children[0].方法名()  |  $children[0].数据
+
+  + 这里的$children[0]相当于第一个子组件的实例
+
++ ref
+
+  >  给html元素设置ref属性，可以得到元素节点
+
+  + 在父组件中给子组件设置ref属性，得到子组件实例
+
+  ```js
+  <todolist ref="list"></todolist>
+  ```
+
+  + 在父组件中使用子组件中的数据和方法
+
+  ```js
+  this.$refs.list.方法名()   ||   this.$refs.list.数据
+  ```
 
 #### 2.2.3、兄弟组件通信
 
@@ -425,34 +465,9 @@ methods:{
 - 作用: 主要用于父组件向子组件传递 标签+数据 , （prop和自定义事件只是传递数据）
 - 场景：一般是某个位置需要经常动态切换显示效果（如饿了么）个性化定制的地方，比如有的按钮
 
-### 利用组件内容进行通讯（父->子）
+### 基础用法（父->子）
 
-##### 1、子组件定义插槽
-
-在子组件中定义插槽, 当父组件向指定插槽传递标签数据后, 插槽处就被渲染，否则插槽处不会被渲染
-
-相当于在slot处（子组件标签的任意位置插入slot）留了一个空位，父组件的子组件标签里面传过来什么内容，就给空位填充什么内容
-
-```javascript
-//没有名字的就叫匿名插槽
-想在哪填充就在结构的哪个位置写上slot标签
-<slot />   ------>单标签
-<slot></slot>
-
-```
-
-##### 2、父组件传递标签数据
-
-```javascript
-//写在父组件引用的自定义子组件里面
-<content-bottom>里面的数据包括content-bottom标签都是会被子组件的template里面的结构替换 ，使用插槽就可以把数据和结构传过去
-</content-bottom>
-<template>
-    <h1>工资表</h1>
-</template>
-```
-
-
+父组件传到子组件
 
 > 在组件模板中利用内置组件`<slot></slot>`来承载组件内容,否则它的内容都会被忽略（被模板内容覆盖）
 
@@ -509,42 +524,125 @@ methods:{
 
 ### 作用域插槽（子->父）
 
-> Vue编译规则：父组件模板的所有东西都会在父级作用域内编译；子组件模板的所有东西都会在子级作用域内编译
+要在父组件拿到子组件里面的数据：从组件内把数据往外传，为了实现可定制化
 
-> 利用作用域插槽(slot-scope)实现把组件模板template中的数据传到组件内容中处理，实现特殊定制（PS：Vue2.6+已废除该属性，改为`v-slot:name`格式，简写：#name）
+> Vue编译规则：父组件模板的所有东西都会在父级作用域内编译；
+>
+> 子组件模板的所有东西都会在子级作用域内编译
+
+> 利用作用域插槽(slot-scope)实现把组件模板template中的数据传到组件内容中处理
+
++ 父组件要实现定制化，要拿到子组件的userInfo数据
 
 ```html
-  <!-- mynav组件模板 -->
-  <div class="box">
-    <slot :msg="msg" :username="username">{{username}}，{{msg}}</slot>
-    <slot name="footer" title="播放器" :player="player">{{player}}</slot>
-  </div>
+子组件：
+<div class="slot">
+    <!-- <slot :username="userInfo.username" :role="userInfo.role" :avatar="userInfo.avatar"/> -->
+        <!-- 把userInfo下所有的属性写到solt组件上，等效于以上用法 -->
+    <!-- 匿名插槽 -->
+    <div class="default">
+        <slot v-bind="userInfo"/>
+    </div>
 
-  <!-- 组件内容 -->
-  <mynav>
-    <!-- props为传过来的数据组成的对象 -->
-    <div slot-scope="props">{{props.msg}}，{{props.username}}</div>
-
-    <!-- Vue2.6+用法 -->
-    <template v-slot:default="props">{{props.msg}}，{{props.username}}</template>
-    <template v-slot:footer="foot">{{foot.title}}，{{foot.player}}</template>
-  </mynav>
+    <!-- 具名插槽 -->
+    <div class="info">
+        <slot name="info" v-bind="userInfo"/>
+    </div>
+</div>
+data:function(){
+    return {
+        userInfo:{
+            username:'jingjing',password:123,role:'vip',gender:'女',age:36,
+        }
+    }
+}
 ```
+
+1、匿名插槽也要加名字default
+
+2、props1只是一个命名，相当于把拿过来的数据赋值给props1变量
+
+3、v-slot可以简写成#
+
+4、v-slot可以写在template或者子组件上
+
+```html
+父组件：
+<ZyySlot v-slot:default="props1">
+  {{props1}}
+  <h4>{{props1.username}}</h4>
+  <p>性别：{{props1.gender}}</p>
+  <p>年龄：{{props1.age}}</p>
+</ZyySlot>
+
+<ZyySlot>
+  <template #info="{username,gender,age}">
+    <h1>用户名：{{username}}</h1>
+    <span>性别：{{gender}}</span>
+    <span>年龄：{{age}}</span>
+  </template>
+</ZyySlot>
+```
+
+
 
 ## 4、内置组件
 
-* `<component>` 动态组件
-    * is：指定渲染的组件
+##### `<component>` 动态组件
+
+* is：指定渲染的组件
 
 ```html
   <component v-bind:is="currentTabComponent"></component>
+<!-- component就会渲染出currentTabComponent组件的内容 -->
+is里面的组件名字可以根据方法变化
+currentTabComponent可以写在data里面，也可以写在components里面
 ```
-* `<keep-alive>` 缓存组件
-  > 把切换出去的组件保留在内存中，可以保留它的状态或避免重新渲染可以添加一个 keep-alive 
-  > 包裹动态组件时，会缓存不活动的组件实例，而不是销毁它们，主要用于保留组件状态或避免重新渲染
+举例：
 
-    * include（String/Regexp） ： 指定缓存组件名
-    * exclude（String/Regexp） ： 指定不缓存的组件名
+```js
+<template>
+    <div>
+        <h1>动态组件</h1>
+        <component :is="currentComponent"></component>
+        <div class="btn-group">
+            <button class="btn btn-outline-primary"
+            v-for="item in 5" :key="item"
+            @click="currentComponent='com'+item"
+            :class="{'btn-success':currentComponent=='com'+item}">{{item}}</button>
+        </div>
+    </div>
+</template>
+
+<script>
+export default {
+    name: "DT",
+    data() {
+        return {
+            currentComponent:'com1',
+        };
+    },
+    created() {
+        //DT组件一创建就生成5个组件放在this.$options.components下面
+        for (let i = 1; i <= 5; i++) {
+            this.$options.components["com" + i] = {
+                name: "com" + i,
+                template: "<div>组件" + i + "</div>",
+            };
+        }
+    },
+};
+```
+
+
+
+##### `<keep-alive>` 缓存组件
+
+> 把切换出去的组件保留在内存中，可以保留它的状态或避免重新渲染可以添加一个 keep-alive 
+> 包裹动态组件时，会缓存不活动的组件实例，而不是销毁它们，主要用于保留组件状态或避免重新渲染
+
+  * include（String/Regexp） ： 指定缓存组件名
+  * exclude（String/Regexp） ： 指定不缓存的组件名
 
 ```html
   <keep-alive>
@@ -552,7 +650,7 @@ methods:{
   </keep-alive>
 ```
 
-* `<slot>` 内容分发（[详情](#插槽内容)） 
+##### `<slot>` 内容分发（[详情](#插槽内容)） 
 
 ### 过渡动画 
 
@@ -674,3 +772,17 @@ methods:{
 
 * 利用动态组件实现Tab标签切换
 * 封装一个step步骤条组件
+
+### 数据流
+
+> 与组件层级有关
+
++ 单向数据流：主流框架全部采用单项数据流
++ 双向数据流：angularJS
+
+### 数据绑定
+
+> 与分层有关
+
++ 单向绑定：v-bind、{{}}
++ 双向绑定：v-model

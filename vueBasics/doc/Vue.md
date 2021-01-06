@@ -200,6 +200,8 @@ let laoxie = {
 
   每个组件实例都有一个_uid，根组件的 _uid为1
 
+- $options
+
 #### 私有属性
 
 控制台打印vue，以下划线开头的，不对外的属性
@@ -279,36 +281,59 @@ created(){
 
 ## 6、生命周期
 
-<!-- ![Alt text](./img/lifecycle.png "Optional title") -->
-
 ### 生命周期函数（钩子函数）
 
 >在某个时刻被自动执行的函数，生命周期函数中的this指向实例，以下为v1.x与v2.x钩子函数对照表：
 
-<img src="./img/lifecycle_hooks.png"/>
-
 * beforeCreate()
     * 初始化完成，但为往实例添加属性
+    * 还拿不到data里面的数据
     * 应用：可以在这加个loading事件 
+
+    > 在这个中间初始化注入和响应式属性：把data里面的属性变成响应式属性
 * created()
     * 应用：在这结束loading，还做一些初始化，实现函数自执行
+    * 最早可以拿到数据的地方，发送ajax请求，刷新后想要实现的都写在这
+
+    > 先判断有没有提供el属性，
+    >
+    > + 有：判断有没有template属性，
+    >   + 有：把template里面的内容放在render函数里面执行
+    >   + 没有：用el的outerTemplate作为template放在render里面
+    > + 没有：
 * beforeMount()
-    * 可以获取节点，但数据未渲染
+    * 可以获取节点，但数据并未挂载
     * 应用：在这发起ajax请求，拿回数据，配合路由钩子做一些事情
+
+    > 从beforeMount---> mounted：把el所在元素里面的vue语法的内容替换成具体的数据
 * mounted()
-    >实例挂载到 DOM 
+    + 数据已经挂载到节点上了 
+
     * 应用：节点操作
+
+> 处在一个稳定的监听数据的状态
+
+
+
 * beforeUpdate()
     * 数据有更新但未更新节点
+
+
+> 是否更新取决于**虚拟DOM**的操作：
+
 * updated()
     * 更新节点完毕
 * beforeDestroy()
+
+> 在这个中间会把事件监听、组件之间的联系之类的全部切断
+
 * destroyed()
     > 执行destroy()后，不会改变已生成的DOM节点，但后续就不再受vue控制了
 
     * 应用：清除定时器、延迟器、取消ajax请求等
+    * `vm.$destroy()`：销毁vm实例，就会切换视图和数据之间的联系
 
-## 指令directive
+## 7、指令directive
 
 指令是带有 v-* 前缀的特殊属性，格式：`v-指令名:参数.修饰符="值"`
 
