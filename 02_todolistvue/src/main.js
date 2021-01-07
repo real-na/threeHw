@@ -1,4 +1,5 @@
-import Vue from 'vue/dist/vue'
+// import Vue from 'vue/dist/vue'//引入完整版
+import Vue from 'vue'; //引入运行时版本
 import App from "./App.vue";
 import router from "./router";
 

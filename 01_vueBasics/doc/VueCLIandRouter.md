@@ -2,7 +2,7 @@
 
 看network里面有一个叫websocket的请求
 
-## 步骤
+## VueCli
 
 + 全局安装脚手架 ： `npm i -g @vue/cli`
 
@@ -94,3 +94,88 @@ import Bus from './Bus';
 Bus.$emit() //调用事件
 ```
 
+## 2、Router
+
+### 2.1、引入
+
++ 多页面应用：MPA(Multiple Page Application)
+
+> 通过a标签跳转
+
++ 单页面应用：SPA(Single Page Application)
+
+> 整个应用只有一个index.html页面
+
+### 2.2、使用
+
+script标签引入：先引入vue，再引入vue-Router
+
+#### npm方式：
+
++ 安装：`npm install vue-router -D` 
++ 入口文件引入：`import VueRouter from 'vue-router'`
++ 使用：`Vue.use(VueRouter)`
++ 实例化router并配置参数：`routes:路由信息表`
+
+```js
+const router = newVueRouter({
+    routes:[
+        //根据路径不同渲染不同的组件
+        {path:'/home',component:Home},{},{}
+    ]
+})
+```
+
++ 注入到Vue的配置中(根实例)
+
+```js
+new Vue({
+	router:router,
+    render:h=>h(App)
+}).$mount('#app')
+```
+
++ 设置路由出口：一级路由出口一般在根组件里面
+
+```html
+<router-view></router-view>
+```
+
+> 做完以上操作就可以实现地址栏输入不同的路由显示不同的页面内容
+
+### 2.3、配置导航：
+
+> 实现路由跳转
+
+#### 2.3.1、声明式导航
+
++ `router-link`：默认会被渲染成a标签
+  + to(String|Object)：
+  + tag：router-link会被渲染成什么标签
+  + active-class：当前匹配组件显示的样式
+  + exact-active-class：精确匹配路由时使用的类名
+  + replace：加上replace的路由就不会产生历史记录
+  + event：触发路由的事件，默认event
+
+#### 2.3.2、编程式导航
+
+> 利用Router实例：
+
+##### $router：路由对象
+
+一般用于路由跳转
+
++ `this.$router.push(‘path’)`
+  + 
++ `this.$router.replace(‘path’)`
+
+##### $route：当前路由信息
+
+保存当前页面的路由信息
+
+### 路由内置组件
+
+都是全局组件
+
++ 显示路由内容：`<router-view>`
++ 跳转页面：``router-link``

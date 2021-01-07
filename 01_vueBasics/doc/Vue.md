@@ -120,7 +120,7 @@ Vue.js 是一个基于MVVM模式的一套渐进式框架。它是以数据驱动
         > 对于需要复杂逻辑或运算才能得到的值，应当使用计算属性
     - methods（类型：Object)
         >一般用于编写公共方法、事件处理函数等，方法中的this指向实例，所以不应该使用箭头函数来定义 method 函数
-    - watch（Object）
+    - watch（Object）：监听实例的属性
         >监听属性（Function），监听的值被修改时会自动调用函数，当需要在数据变化时执行异步或开销较大的操作时，这个方式是最有用的
         ```js
             watch: {
@@ -129,6 +129,22 @@ Vue.js 是一个基于MVVM模式的一套渐进式框架。它是以数据驱动
                 }
             }
         ```
+
+可以用来监听路由信息的变化：（点击上一页下一页的时候高亮变化）
+
+```js
+watch:{
+	$route:function(newVal,oldVal){
+		this.current = newVal.path;
+    }
+    //如果直接监听对象下的某一个属性，就要加''
+    '$route.path':function(newVal,oldVal){
+		this.current = newVal;
+    }
+}
+```
+
+
 
 ## 5、实例属性&方法
 
@@ -200,7 +216,18 @@ let laoxie = {
 
   每个组件实例都有一个_uid，根组件的 _uid为1
 
-- $options
+- $options：this.$options可以拿到整个vue实例
+
+```js
+// demo 是自定义属性 可以 通过 vm.$options.demo 获取到属性
+demo: '自定义属性', //demo和data同级
+mounted () {
+	//使用 vm.$options 可以获取 实例上自定义的  属性
+    console.log( this.$options.demo, '$options');  //自定义属性
+}
+```
+
+
 
 #### 私有属性
 
@@ -299,7 +326,7 @@ created(){
     >
     > + 有：判断有没有template属性，
     >   + 有：把template里面的内容放在render函数里面执行
-    >   + 没有：用el的outerTemplate作为template放在render里面
+    >   + 没有：用el的outerHTML作为template放在render里面
     > + 没有：
 * beforeMount()
     * 可以获取节点，但数据并未挂载
@@ -333,7 +360,61 @@ created(){
     * 应用：清除定时器、延迟器、取消ajax请求等
     * `vm.$destroy()`：销毁vm实例，就会切换视图和数据之间的联系
 
-## 7、指令directive
+## 7、render
+
+createElement参数：官网api搜索createElement
+
+```js
+render(createElement){
+	return createElement(参数1，参数2，参数3)
+}
+```
+
++ 参数1为子组件：在入口文件挂载App根组件
+
+```js
+new Vue({
+  router,
+  render: h => h(App)
+}).$mount("#app");
+```
+
++ 参数1为标签名，参数二为标签内容
+
+```js
+render(createElement){
+    return createElement('div','组件')
+},
+相当于：
+template:'<div>组件</div>'
+```
+
++ 如果标签内容还是标签，可以写在第三个参数为一个数组，此时参数二可以省略
+
+```js
+render(createElement){
+     return createElement('div',[createElement('input')])
+},
+```
+
++ 数组里面可以创建多个标签，可以添加属性，添加class名，添加样式
+
+```js
+render(createElement) {
+    return createElement("div", [
+        "先写一些文字",
+        createElement("h1", "一则头条"),
+        createElement("input", {
+            class: 'ipt',
+            attrs:{type:'password'}
+        }),
+    ]);
+},
+```
+
+
+
+## 8、指令directive
 
 指令是带有 v-* 前缀的特殊属性，格式：`v-指令名:参数.修饰符="值"`
 
@@ -487,3 +568,10 @@ created(){
 
 + arrayKeys 数组原型对象上的每一个属性的名字，相当于以数组的形式存储每一个方法 
 
+### vue版本
+
+##### 完整版
+
++ 完整版 = 运行时版本 + 编译器（template编译成render）
+
+##### 运行时版本(runtime-only)

@@ -113,10 +113,10 @@
 
 1. props 父组件向子组件传递数据：父传子、子传父
 
-   + props传递过去的数据如果不接收，就会自己放在根节点的属性上
+   + props传递过去的数据如果不接收，就会自己放在根节点的属性上（自动合并）
 
    ```js
-   
+   举例：todoBotton
    ```
 
    
@@ -507,7 +507,7 @@ methods:{
     </div>
   </template>
 
-  <!-- 使用组件 -->
+  <!-- 旧的用法使用组件 -->
   <my-component>
     <span slot="header">这里的内容显示到name为header的插槽</span>
     <span>这里的内容显示到默认插槽</span>
@@ -560,7 +560,7 @@ data:function(){
 
 1、匿名插槽也要加名字default
 
-2、props1只是一个命名，相当于把拿过来的数据赋值给props1变量
+2、props只是一个命名，相当于把拿过来的数据赋值给props变量
 
 3、v-slot可以简写成#
 
@@ -568,11 +568,11 @@ data:function(){
 
 ```html
 父组件：
-<ZyySlot v-slot:default="props1">
-  {{props1}}
-  <h4>{{props1.username}}</h4>
-  <p>性别：{{props1.gender}}</p>
-  <p>年龄：{{props1.age}}</p>
+<ZyySlot v-slot:default="props">
+  {{props}}
+  <h4>{{props.username}}</h4>
+  <p>性别：{{props.gender}}</p>
+  <p>年龄：{{props.age}}</p>
 </ZyySlot>
 
 <ZyySlot>
@@ -623,20 +623,22 @@ export default {
         };
     },
     created() {
-        //DT组件一创建就生成5个组件放在this.$options.components下面
+//DT组件一创建就生成5个组件放在this.$options.components下面
+//this.$options相当于一个vue实例
         for (let i = 1; i <= 5; i++) {
             this.$options.components["com" + i] = {
                 name: "com" + i,
                 template: "<div>组件" + i + "</div>",
+//脚手架默认导入运行时版本，运行时版本不编译template，要在入口文件引入完整版；或者用render的写法
             };
         }
     },
 };
 ```
 
-
-
 ##### `<keep-alive>` 缓存组件
+
+从一个页面跳转到另外一个页面（失活的组件就会被销毁），重新跳转回来的时候，想看到原来输入的内容（搜索框经常用到），就可以用keep-alive把组件包起来
 
 > 把切换出去的组件保留在内存中，可以保留它的状态或避免重新渲染可以添加一个 keep-alive 
 > 包裹动态组件时，会缓存不活动的组件实例，而不是销毁它们，主要用于保留组件状态或避免重新渲染
@@ -645,7 +647,8 @@ export default {
   * exclude（String/Regexp） ： 指定不缓存的组件名
 
 ```html
-  <keep-alive>
+  <keep-alive  include="com1"> // 只缓存com1组件
+  			  :include="/com[1|2]/"  //缓存com1和com2
      <component v-bind:is="currentTabComponent"></component>
   </keep-alive>
 ```

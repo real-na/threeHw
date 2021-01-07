@@ -25,6 +25,9 @@
 
     <!-- 动态组件 -->
     <DtComponent/>
+
+    <!-- 缓存组件keepalive -->
+    <Keepalive/>
   </div>
 </template>
 
@@ -32,12 +35,14 @@
 import TodoList from '../components/todolist';
 import ZyySlot from '../components/zyySlot.vue';
 import DtComponent from '../components/DtComponent.vue';
+import Keepalive from '../components/Keepalive.vue';
 export default {
   name: "Home",
   components:{
     TodoList,
     ZyySlot,
-    DtComponent
+    DtComponent,
+    Keepalive
   }
 };
 </script>
