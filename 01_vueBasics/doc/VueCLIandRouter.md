@@ -118,10 +118,10 @@ script标签引入：先引入vue，再引入vue-Router
 + 实例化router并配置参数：`routes:路由信息表`
 
 ```js
-const router = newVueRouter({
+const router = new VueRouter({
     routes:[
         //根据路径不同渲染不同的组件
-        {path:'/home',component:Home},{},{}
+        {path:'/home',component:()=>import("../views/Home.vue"),},{},{}
     ]
 })
 ```
@@ -166,12 +166,53 @@ new Vue({
 一般用于路由跳转
 
 + `this.$router.push(‘path’)`
-  + 
+  + path：
+
 + `this.$router.replace(‘path’)`
+
+  + > 类似于router.push()，唯一不同的是它不会向 history 添加新记录
+
++ `this.$router.back()`
+
++ `this.$router.forward()`
+
++ `this.$router.go(n)`
 
 ##### $route：当前路由信息
 
 保存当前页面的路由信息
+
+```js
+//1、给导航绑定点击事件
+<ul>
+    <li v-for="item in nav" :key="item.name" @click="goto(item.path)"
+        :class="{'active':currentPath===item.path}">{{item.text}}</li>
+</ul>
+
+//2、定义默认当前路径为home,高亮样式也为home
+currentPath:'/home',
+    
+//3、点击的时候触发goto事件处理函数，在里面实现页面的跳转
+goto(path){
+  this.$router.push(path);
+  // this.currentPath = this.$route.path;
+  // 在这里拿到的是旧值，所以要使用watch拿到最新的值
+  console.log("goto=",this.$route.path);
+}
+
+//4、监听$route.path的变化，可以拿到页面的当前路由，实现高亮样式跟着路由改变
+watch:{
+  "$route.path":function(newVal,oldVal){
+    console.log(newVal,oldVal);
+    this.currentPath = newVal;
+  }
+},
+    
+//5、组件创建的时候拿到当前路由赋值给currentPath：实现页面刷新的时候高亮不乱
+created(){
+  this.currentPath = this.$route.path;
+}
+```
 
 ### 路由内置组件
 
