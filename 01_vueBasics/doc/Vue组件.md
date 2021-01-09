@@ -45,7 +45,6 @@
 
 在某个Vue实例中通过components属性注册的组件为局部组件，只有当前实例能使用
 ```javascript
-    
     var Child = {
         data(){
             return {
@@ -789,3 +788,10 @@ export default {
 
 + 单向绑定：v-bind、{{}}
 + 双向绑定：v-model
+
+#### props和data的区别
+
++ props为父组件传入的数据
++ data为组件的数据
+
+因为两种都是挂载在实例上的，所以不要重名

@@ -39,6 +39,10 @@ const routes = [{
 }, {
     path: '/discover',
     component: () => import("../views/Discover.vue"),
+},{
+    path:'/details/:id',
+    component: () => import("../views/Details.vue"),
+    props:true, //Props传参，相当于<Details v-bind="route.params">
 }];
 
 // 4、实例化

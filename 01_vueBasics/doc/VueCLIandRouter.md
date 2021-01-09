@@ -115,6 +115,7 @@ script标签引入：先引入vue，再引入vue-Router
 + 安装：`npm install vue-router -D` 
 + 入口文件引入：`import VueRouter from 'vue-router'`
 + 使用：`Vue.use(VueRouter)`
+  + use以后，就可以使用全局的组件：`router-view、router-link`
 + 实例化router并配置参数：`routes:路由信息表`
 
 ```js
@@ -180,7 +181,7 @@ new Vue({
 
 ##### $route：当前路由信息
 
-保存当前页面的路由信息
+保存当前页面的路由信息，可以用来实现刷新高亮样式不掉的效果
 
 ```js
 //1、给导航绑定点击事件

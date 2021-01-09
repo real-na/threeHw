@@ -332,7 +332,7 @@ created(){
     * 可以获取节点，但数据并未挂载
     * 应用：在这发起ajax请求，拿回数据，配合路由钩子做一些事情
 
-    > 从beforeMount---> mounted：把el所在元素里面的vue语法的内容替换成具体的数据
+    > 从beforeMount---> mounted：把el所在元素里面的vue语法的内容替换成具体的数据，把数据挂载到视图上，
 * mounted()
     + 数据已经挂载到节点上了 
 
@@ -340,13 +340,13 @@ created(){
 
 > 处在一个稳定的监听数据的状态
 
-
+当数据有修改的时候，才往下
 
 * beforeUpdate()
     * 数据有更新但未更新节点
 
 
-> 是否更新取决于**虚拟DOM**的操作：
+> 是否更新取决于**虚拟DOM**的操作
 
 * updated()
     * 更新节点完毕
@@ -575,3 +575,4 @@ render(createElement) {
 + 完整版 = 运行时版本 + 编译器（template编译成render）
 
 ##### 运行时版本(runtime-only)
+

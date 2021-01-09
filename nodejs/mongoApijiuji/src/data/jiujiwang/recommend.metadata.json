@@ -1,0 +1,1 @@
+{"options":{},"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_","ns":"jiujiwang.recommend"}],"uuid":"4acd32a348a1426295326a74e71e3e50"}

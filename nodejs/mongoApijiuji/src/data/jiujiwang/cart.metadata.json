@@ -1,0 +1,1 @@
+{"options":{},"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_","ns":"jiujiwang.cart"}],"uuid":"2a5e0becff1946e4b87258fb871ed7ae"}

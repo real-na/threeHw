@@ -1,0 +1,49 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body {
+    width: 100%;
+}
+
+.nav {
+    font-size: 20px;
+    background-color: #545c64;
+    line-height: 60px;
+    height: 60px;
+}
+
+.nav .el-menu.el-menu--horizontal {
+    border-bottom: none;
+}
+
+.nav .btn {
+    text-align: right;
+    padding-right: 20px;
+}
+
+/* 全局样式 */
+.price{
+    span::before,del::before{
+        content:'￥'
+    }
+    del{color: #999;}
+    span{color: #f00;}
+}
+
+@for $i from 1 to 6{
+    .m-#{$i}{
+        margin: $i*0.3em;
+    }
+    .p-#{$i}{
+        padding: $i*0.3em;
+    }
+}
+.fl{
+    float: left;
+}
+.fr{
+    float: right;
+}

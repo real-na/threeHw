@@ -6,7 +6,7 @@
         <li v-for="item in nav" :key="item.name" @click="goto(item.path)"
         :class="{'active':currentPath===item.path}">{{item.text}}</li>
     </ul> -->
-        <el-row>
+        <el-row class="nav">
             <el-col :span="18">
                 <el-menu
                     :default-active="currentPath"
@@ -86,26 +86,6 @@ export default {
 };
 </script>
 
-<style>
-*{
-  margin: 0;
-  padding: 0;
-}
-html,body{
-  width: 100%;
-}
-
-.el-row{
-  font-size: 20px;
-  background-color: #545c64;
-  line-height: 60px;
-  height: 60px;
-}
-.el-row .el-menu.el-menu--horizontal{
-  border-bottom: none;
-}
-.el-row .btn{
-  text-align: right;
-  padding-right:20px;
-}
+<style lang='scss'>
+@import './assets/scss/base.scss';
 </style>
